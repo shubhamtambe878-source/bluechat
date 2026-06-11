@@ -26,21 +26,31 @@ const ALLOWED_ORIGINS = [
   "http://127.0.0.1:5173",
 ].filter(Boolean);
 
+// Allow all Vercel deployment URLs for this project (production + previews + branch URLs)
+const VERCEL_PATTERN = /^https:\/\/bluechat[a-z0-9-]*\.vercel\.app$/i;
+
+const corsOriginCheck = (origin, callback) => {
+  if (!origin) return callback(null, true); // same-origin, curl, server-to-server
+  if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+  if (VERCEL_PATTERN.test(origin)) return callback(null, true);
+  console.warn("CORS blocked origin:", origin);
+  callback(new Error(`Origin ${origin} not allowed by CORS`));
+};
+
 const io = new Server(server, {
   cors: {
-    origin: ALLOWED_ORIGINS,
+    origin: corsOriginCheck,
     methods: ["GET", "POST"],
     credentials: true,
   },
   pingTimeout: 60000,
-  // Scalability: enable larger room broadcast queue
   maxHttpBufferSize: 10 * 1024 * 1024,
 });
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(morgan("dev"));
 app.use(cors({
-  origin: ALLOWED_ORIGINS,
+  origin: corsOriginCheck,
   credentials: true,
 }));
 app.use(express.json({ limit: "10mb" }));
@@ -68,6 +78,7 @@ app.use("/api/friends", friendRoutes);
 app.use("/api/status", statusRoutes);
 
 app.get("/api/health", (req, res) => res.json({ status: "OK", time: new Date() }));
+app.get("/", (req, res) => res.json({ name: "BlueChat API", health: "/api/health" }));
 
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
