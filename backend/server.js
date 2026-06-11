@@ -28,10 +28,18 @@ const ALLOWED_ORIGINS = [
 
 // Allow all Vercel deployment URLs for this project (production + previews + branch URLs)
 const VERCEL_PATTERN = /^https:\/\/bluechat[a-z0-9-]*\.vercel\.app$/i;
+// Capacitor (Android APK / iOS) uses these origin schemes
+const CAPACITOR_ORIGINS = [
+  "https://localhost",
+  "http://localhost",
+  "capacitor://localhost",
+  "ionic://localhost",
+];
 
 const corsOriginCheck = (origin, callback) => {
-  if (!origin) return callback(null, true); // same-origin, curl, server-to-server
+  if (!origin) return callback(null, true); // same-origin, curl, server-to-server, capacitor (sometimes no origin)
   if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+  if (CAPACITOR_ORIGINS.includes(origin)) return callback(null, true);
   if (VERCEL_PATTERN.test(origin)) return callback(null, true);
   console.warn("CORS blocked origin:", origin);
   callback(new Error(`Origin ${origin} not allowed by CORS`));
