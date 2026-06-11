@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node server.js)",
+      "mcp__Claude_in_Chrome__list_connected_browsers",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(taskkill //F //PID 29820)",
+      "Bash(powershell -Command \"Stop-Process -Id 29820 -Force\")",
+      "Bash(curl -s -o /dev/null -w \"5173: %{http_code}\\\\n\" http://localhost:5173/)"
+    ]
+  }
+}
